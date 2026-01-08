@@ -306,6 +306,7 @@ export function InspectorDashboard() {
   }, []); // Only run once on mount
 
   // Form state
+  const [serverName, setServerName] = useState("");
   const [url, setUrl] = useState("");
   const [connectionType, setConnectionType] = useState("Direct");
   const [customHeaders, setCustomHeaders] = useState<CustomHeader[]>([]);
@@ -416,12 +417,12 @@ export function InspectorDashboard() {
       // Store pending connection config - don't add to saved connections yet
       setPendingConnectionConfig({
         url,
-        name: url,
+        name: serverName.trim() || url, // Use the server name if provided, otherwise fallback to URL
         proxyConfig,
         transportType: actualTransportType,
       });
     },
-    [url, connectionType, proxyAddress, customHeaders]
+    [url, serverName, connectionType, proxyAddress, customHeaders]
   );
 
   // Handle successful connection
@@ -1048,6 +1049,8 @@ export function InspectorDashboard() {
       <div className="w-full relative overflow-hidden h-auto lg:h-full py-4 px-4 sm:py-6 sm:px-6 lg:p-10 items-center justify-center flex">
         <div className="relative w-full max-w-xl mx-auto z-10 flex flex-col gap-3 rounded-3xl p-4 sm:p-6 bg-black/70 dark:bg-black/90 shadow-2xl shadow-black/50 backdrop-blur-md">
           <ConnectionSettingsForm
+            name={serverName}
+            setName={setServerName}
             transportType="SSE"
             setTransportType={() => {}}
             url={url}

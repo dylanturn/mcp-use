@@ -25,6 +25,8 @@ import { CustomHeadersEditor } from "./CustomHeadersEditor";
 
 interface ConnectionSettingsFormProps {
   // Form state
+  name: string;
+  setName: (value: string) => void;
   transportType: string;
   setTransportType: (value: string) => void;
   url: string;
@@ -84,6 +86,8 @@ interface ConnectionSettingsFormProps {
  * @returns The JSX element for the connection settings form
  */
 export function ConnectionSettingsForm({
+  name,
+  setName,
   transportType,
   setTransportType,
   url,
@@ -289,6 +293,27 @@ export function ConnectionSettingsForm({
           Copy Config
         </Button>
       )}
+
+      {/* Name (optional) */}
+      <div className="space-y-2">
+        <Label className={labelClassName}>
+          Server Name <span className="text-muted-foreground text-xs">(optional)</span>
+        </Label>
+        <Input
+          placeholder="my-server"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className={inputClassName}
+        />
+        <p
+          className={cn(
+            "text-xs text-muted-foreground",
+            isStyled ? "text-white/60" : ""
+          )}
+        >
+          A custom name to identify this server. If not provided, URL will be used.
+        </p>
+      </div>
 
       {/* URL */}
       <div className="space-y-2">

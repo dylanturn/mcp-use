@@ -515,6 +515,72 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
+## Independent Server Naming and Duplicate URLs
+
+Server names in mcp-use are completely independent from their URLs. This gives you the flexibility to:
+
+1. **Use descriptive names** that don't match the URL
+2. **Connect to the same URL multiple times** with different configurations
+3. **Organize servers logically** by environment or purpose
+
+### Example: Multiple Servers with the Same URL
+
+```python
+from mcp_use import MCPClient
+
+client = MCPClient()
+
+# Connect to the same API with different authentication contexts
+client.add_server("admin_access", {
+    "url": "http://api.example.com/sse",
+    "auth": "admin_token_xyz"
+})
+
+client.add_server("readonly_access", {
+    "url": "http://api.example.com/sse",
+    "auth": "readonly_token_abc"
+})
+
+# Each server can be accessed independently
+await client.create_session("admin_access")
+await client.create_session("readonly_access")
+
+admin_session = client.get_session("admin_access")
+readonly_session = client.get_session("readonly_access")
+```
+
+### Example: Environment-Based Configuration
+
+```python
+config = {
+    "mcpServers": {
+        # All three servers point to the same URL
+        "production": {"url": "http://api.example.com/sse"},
+        "staging": {"url": "http://api.example.com/sse"},
+        "development": {"url": "http://api.example.com/sse"}
+    }
+}
+
+client = MCPClient.from_dict(config)
+
+# Access each environment independently
+await client.create_session("production")
+await client.create_session("staging")
+```
+
+### Example: Descriptive Names
+
+```python
+client = MCPClient()
+
+# Server names don't need to match URLs
+client.add_server("github_integration", {"url": "http://localhost:3001"})
+client.add_server("linear_integration", {"url": "http://localhost:3002"})
+client.add_server("slack_notifications", {"url": "http://localhost:3003"})
+```
+
+For more detailed examples, see the [Server Configuration Guide](../../SERVER_CONFIGURATION_GUIDE.md).
+
 # Tool Access Control
 
 mcp-use allows you to restrict which tools are available to the agent, providing better security and control over agent capabilities:
