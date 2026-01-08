@@ -770,9 +770,11 @@ export function InspectorDashboard() {
                       <div className="flex items-center gap-3">
                         <ServerIcon server={connection} size="md" />
                         <h4 className="font-semibold text-sm">
-                          {connection.serverInfo?.title ||
-                            connection.serverInfo?.name ||
-                            connection.name}
+                          {connection.name !== connection.id
+                            ? connection.name
+                            : connection.serverInfo?.title ||
+                              connection.serverInfo?.name ||
+                              connection.name}
                         </h4>
                         <div className="flex items-center gap-2">
                           {connectingServers.has(connection.id) ? (
