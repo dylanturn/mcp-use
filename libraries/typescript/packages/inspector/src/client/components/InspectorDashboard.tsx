@@ -178,7 +178,9 @@ export function InspectorDashboard() {
       proxyConfig?: any,
       transportType?: "http" | "sse"
     ) => {
-      addServer(url, {
+      // Use custom name as ID if provided, otherwise fall back to URL
+      const serverId = name || url;
+      addServer(serverId, {
         url,
         name,
         proxyConfig,
@@ -441,10 +443,11 @@ export function InspectorDashboard() {
 
     // Track server added
     const telemetry = Telemetry.getInstance();
+    const serverId = pendingConnectionConfig.name || pendingConnectionConfig.url;
     telemetry
       .capture(
         new MCPServerAddedEvent({
-          serverId: pendingConnectionConfig.url,
+          serverId: serverId,
           serverUrl: pendingConnectionConfig.url,
           connectionType: pendingConnectionConfig.transportType,
           viaProxy: !!pendingConnectionConfig.proxyConfig?.proxyAddress,
@@ -459,6 +462,7 @@ export function InspectorDashboard() {
 
     // Reset form
     setUrl("");
+    setServerName(""); // Also reset server name field
     setCustomHeaders([]);
     setClientId("");
     setScope("");
@@ -573,8 +577,11 @@ export function InspectorDashboard() {
     }) => {
       if (!editingConnectionId) return;
 
-      // If the URL changed, we need to remove the old one and add a new one
-      if (config.url !== editingConnectionId) {
+      // Calculate the new server ID (name if provided, otherwise URL)
+      const newServerId = config.name || config.url;
+
+      // If the server ID changed (name or URL), we need to remove the old one and add a new one
+      if (newServerId !== editingConnectionId) {
         removeConnection(editingConnectionId);
         addConnection(
           config.url,
