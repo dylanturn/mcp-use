@@ -19,6 +19,7 @@ import { MCPServerAddedEvent, Telemetry } from "@/client/telemetry";
 import {
   CircleMinus,
   Copy,
+  CopyPlus,
   Info,
   Loader2,
   MoreVertical,
@@ -565,6 +566,53 @@ export function InspectorDashboard() {
     action();
   };
 
+  const handleDuplicateConnection = (connection: any) => {
+    // Prefill the form with the connection's data
+    setServerName(connection.name || "");
+    setUrl(connection.url);
+
+    // Determine connection type based on proxyConfig
+    if (connection.proxyConfig?.proxyAddress) {
+      setConnectionType("Via Proxy");
+      setProxyAddress(connection.proxyConfig.proxyAddress);
+    } else {
+      setConnectionType("Direct");
+    }
+
+    // Convert customHeaders from Record<string, string> to CustomHeader[]
+    const headersToConvert =
+      connection.proxyConfig?.customHeaders || connection.customHeaders || {};
+    const headerArray: CustomHeader[] = Object.entries(headersToConvert).map(
+      ([name, value], index) => ({
+        id: `header-${index}`,
+        name,
+        value: String(value),
+      })
+    );
+    setCustomHeaders(headerArray);
+
+    // Set timeout values if available
+    if (connection.requestTimeout) {
+      setRequestTimeout(String(connection.requestTimeout));
+    }
+    if (connection.maxTotalTimeout) {
+      setMaxTotalTimeout(String(connection.maxTotalTimeout));
+    }
+    if (connection.resetTimeoutOnProgress !== undefined) {
+      setResetTimeoutOnProgress(
+        connection.resetTimeoutOnProgress ? "True" : "False"
+      );
+    }
+
+    // Set OAuth fields if available
+    if (connection.oauth) {
+      setClientId(connection.oauth.clientId || "");
+      setScope(connection.oauth.scope || "");
+    }
+
+    toast.success("Connection configuration duplicated. Update as needed.");
+  };
+
   const handleUpdateConnection = useCallback(
     (config: {
       url: string;
@@ -870,6 +918,25 @@ export function InspectorDashboard() {
                             variant="secondary"
                             size="sm"
                             onClick={(e) =>
+                              handleActionClick(e, () =>
+                                handleDuplicateConnection(connection)
+                              )
+                            }
+                            className="h-8 w-8 p-0"
+                          >
+                            <CopyPlus className="w-4 h-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Duplicate connection</p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={(e) =>
                               handleActionClick(e, () => {
                                 setInfoModalConnection(connection);
                                 setInfoModalOpen(true);
@@ -964,6 +1031,15 @@ export function InspectorDashboard() {
                           >
                             <Copy className="h-4 w-4 mr-2" />
                             Copy connection config
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDuplicateConnection(connection);
+                            }}
+                          >
+                            <CopyPlus className="h-4 w-4 mr-2" />
+                            Duplicate connection
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={(e) => {
