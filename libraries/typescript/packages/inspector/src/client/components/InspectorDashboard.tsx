@@ -610,7 +610,7 @@ export function InspectorDashboard() {
       setScope(connection.oauth.scope || "");
     }
 
-    toast.success("Connection configuration loaded. Update the name and settings, then click Connect.");
+    toast.success("Connection configuration duplicated. Update as needed.");
   };
 
   const handleUpdateConnection = useCallback(
