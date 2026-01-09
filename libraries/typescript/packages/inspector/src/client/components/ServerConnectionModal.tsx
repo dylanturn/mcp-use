@@ -44,6 +44,7 @@ export function ServerConnectionModal({
   onConnect,
 }: ServerConnectionModalProps) {
   // Form state
+  const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [connectionType, setConnectionType] = useState("Direct");
   const [customHeaders, setCustomHeaders] = useState<CustomHeader[]>([]);
@@ -65,6 +66,7 @@ export function ServerConnectionModal({
   // Prefill form when connection changes
   useEffect(() => {
     if (connection && open) {
+      setName(connection.name || "");
       setUrl(connection.url);
 
       // Transport type is always HTTP now (SSE is deprecated)
@@ -143,7 +145,7 @@ export function ServerConnectionModal({
 
     onConnect({
       url,
-      name: connection?.name,
+      name: name.trim() || undefined, // Use the name from the form, or undefined if empty
       transportType: actualTransportType,
       proxyConfig,
     });
@@ -158,6 +160,8 @@ export function ServerConnectionModal({
           <DialogTitle>Edit Connection Settings</DialogTitle>
         </DialogHeader>
         <ConnectionSettingsForm
+          name={name}
+          setName={setName}
           transportType="SSE"
           setTransportType={() => {}}
           url={url}

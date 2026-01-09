@@ -178,7 +178,9 @@ export function InspectorDashboard() {
       proxyConfig?: any,
       transportType?: "http" | "sse"
     ) => {
-      addServer(url, {
+      // Use custom name as ID if provided, otherwise fall back to URL
+      const serverId = name || url;
+      addServer(serverId, {
         url,
         name,
         proxyConfig,
@@ -306,6 +308,7 @@ export function InspectorDashboard() {
   }, []); // Only run once on mount
 
   // Form state
+  const [serverName, setServerName] = useState("");
   const [url, setUrl] = useState("");
   const [connectionType, setConnectionType] = useState("Direct");
   const [customHeaders, setCustomHeaders] = useState<CustomHeader[]>([]);
@@ -416,12 +419,12 @@ export function InspectorDashboard() {
       // Store pending connection config - don't add to saved connections yet
       setPendingConnectionConfig({
         url,
-        name: url,
+        name: serverName.trim() || url, // Use the server name if provided, otherwise fallback to URL
         proxyConfig,
         transportType: actualTransportType,
       });
     },
-    [url, connectionType, proxyAddress, customHeaders]
+    [url, serverName, connectionType, proxyAddress, customHeaders]
   );
 
   // Handle successful connection
@@ -440,10 +443,11 @@ export function InspectorDashboard() {
 
     // Track server added
     const telemetry = Telemetry.getInstance();
+    const serverId = pendingConnectionConfig.name || pendingConnectionConfig.url;
     telemetry
       .capture(
         new MCPServerAddedEvent({
-          serverId: pendingConnectionConfig.url,
+          serverId: serverId,
           serverUrl: pendingConnectionConfig.url,
           connectionType: pendingConnectionConfig.transportType,
           viaProxy: !!pendingConnectionConfig.proxyConfig?.proxyAddress,
@@ -458,6 +462,7 @@ export function InspectorDashboard() {
 
     // Reset form
     setUrl("");
+    setServerName(""); // Also reset server name field
     setCustomHeaders([]);
     setClientId("");
     setScope("");
@@ -572,8 +577,11 @@ export function InspectorDashboard() {
     }) => {
       if (!editingConnectionId) return;
 
-      // If the URL changed, we need to remove the old one and add a new one
-      if (config.url !== editingConnectionId) {
+      // Calculate the new server ID (name if provided, otherwise URL)
+      const newServerId = config.name || config.url;
+
+      // If the server ID changed (name or URL), we need to remove the old one and add a new one
+      if (newServerId !== editingConnectionId) {
         removeConnection(editingConnectionId);
         addConnection(
           config.url,
@@ -769,9 +777,11 @@ export function InspectorDashboard() {
                       <div className="flex items-center gap-3">
                         <ServerIcon server={connection} size="md" />
                         <h4 className="font-semibold text-sm">
-                          {connection.serverInfo?.title ||
-                            connection.serverInfo?.name ||
-                            connection.name}
+                          {connection.name !== connection.id
+                            ? connection.name
+                            : connection.serverInfo?.title ||
+                              connection.serverInfo?.name ||
+                              connection.name}
                         </h4>
                         <div className="flex items-center gap-2">
                           {connectingServers.has(connection.id) ? (
@@ -1048,6 +1058,8 @@ export function InspectorDashboard() {
       <div className="w-full relative overflow-hidden h-auto lg:h-full py-4 px-4 sm:py-6 sm:px-6 lg:p-10 items-center justify-center flex">
         <div className="relative w-full max-w-xl mx-auto z-10 flex flex-col gap-3 rounded-3xl p-4 sm:p-6 bg-black/70 dark:bg-black/90 shadow-2xl shadow-black/50 backdrop-blur-md">
           <ConnectionSettingsForm
+            name={serverName}
+            setName={setServerName}
             transportType="SSE"
             setTransportType={() => {}}
             url={url}
